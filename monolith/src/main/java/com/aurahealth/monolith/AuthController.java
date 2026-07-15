@@ -4,7 +4,7 @@ import com.aurahealth.monolith.entity.Doctor;
 import com.aurahealth.monolith.entity.Patient;
 import com.aurahealth.monolith.model.User;
 import com.aurahealth.monolith.security.JwtTokenProvider;
-import jakarta.servlet.http.Cookie;
+import com.aurahealth.monolith.security.SessionCookieFactory;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -32,15 +32,16 @@ public class AuthController {
     private final PatientRepository patients;
     private final JwtTokenProvider tokens;
     private final PasswordEncoder passwords;
+    private final SessionCookieFactory cookies;
     private final String internalOauthKey;
     private final boolean mockAuthEnabled;
 
     public AuthController(UserRepository users, DoctorRepository doctors, PatientRepository patients,
-                          JwtTokenProvider tokens, PasswordEncoder passwords,
+                          JwtTokenProvider tokens, PasswordEncoder passwords, SessionCookieFactory cookies,
                           @Value("${aura.internal.oauth-key}") String internalOauthKey,
                           @Value("${aura.mock-auth.enabled:false}") boolean mockAuthEnabled) {
         this.users = users; this.doctors = doctors; this.patients = patients;
-        this.tokens = tokens; this.passwords = passwords;
+        this.tokens = tokens; this.passwords = passwords; this.cookies = cookies;
         this.internalOauthKey = internalOauthKey;
         this.mockAuthEnabled = mockAuthEnabled;
     }
@@ -156,7 +157,7 @@ public class AuthController {
 
     private ResponseEntity<?> authenticated(User user, HttpServletResponse response, HttpStatus status) {
         String token = tokens.generateToken(user.getEmail(), List.of("ROLE_" + user.getRole().name()));
-        Cookie cookie = new Cookie("AURA_SESSION", token); cookie.setHttpOnly(true); cookie.setSecure(false); cookie.setPath("/"); cookie.setMaxAge(86_400); cookie.setAttribute("SameSite", "Lax"); response.addCookie(cookie);
+        cookies.issue(response, token);
         return ResponseEntity.status(status).body(Map.of("message", "Authenticated", "user", profile(user)));
     }
 
@@ -171,6 +172,6 @@ public class AuthController {
         return value;
     }
     private ResponseEntity<Map<String, String>> error(HttpStatus status, String message) { return ResponseEntity.status(status).body(Map.of("message", message)); }
-    private void clearCookie(HttpServletResponse response) { Cookie cookie = new Cookie("AURA_SESSION", ""); cookie.setHttpOnly(true); cookie.setSecure(false); cookie.setPath("/"); cookie.setMaxAge(0); cookie.setAttribute("SameSite", "Lax"); response.addCookie(cookie); }
+    private void clearCookie(HttpServletResponse response) { cookies.clear(response); }
     private boolean blank(String value) { return value == null || value.isBlank(); }
 }
