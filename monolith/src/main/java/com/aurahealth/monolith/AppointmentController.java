@@ -1,0 +1,42 @@
+package com.aurahealth.monolith;
+
+import com.aurahealth.monolith.entity.Appointment;
+import com.aurahealth.monolith.entity.Patient;
+import com.aurahealth.monolith.model.User;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/appointments")
+public class AppointmentController {
+    private final AppointmentService appointments; private final UserRepository users; private final PatientRepository patients; private final DoctorRepository doctors;
+    public AppointmentController(AppointmentService appointments, UserRepository users, PatientRepository patients, DoctorRepository doctors) { this.appointments = appointments; this.users = users; this.patients = patients; this.doctors = doctors; }
+
+    @PostMapping("/book")
+    public ResponseEntity<?> book(@RequestParam Long doctorId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime appointmentTime, @RequestParam(required = false) String symptoms, Authentication authentication) {
+        User user = current(authentication);
+        if (user.getRole() != User.Role.PATIENT) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Only patients can book appointments."));
+        Patient patient = patients.findByEmail(user.getEmail()).orElseThrow();
+        Appointment appointment = appointments.createAppointment(patient.getId(), doctorId, appointmentTime, symptoms);
+        return ResponseEntity.status(HttpStatus.CREATED).body(view(appointment, user));
+    }
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<Map<String, Object>>> mine(Authentication authentication) {
+        User user = current(authentication);
+        List<Appointment> result = user.getRole() == User.Role.DOCTOR
+                ? doctors.findAll().stream().filter(d -> d.getUserId().equals(user.getId())).findFirst().map(d -> appointments.getAppointmentsByDoctor(d.getId())).orElse(List.of())
+                : patients.findByEmail(user.getEmail()).map(p -> appointments.getAppointmentsByPatient(p.getId())).orElse(List.of());
+        return ResponseEntity.ok(result.stream().map(item -> view(item, user)).toList());
+    }
+
+    private User current(Authentication authentication) { return users.findByEmailIgnoreCase(authentication.getName()).orElseThrow(); }
+    private Map<String, Object> view(Appointment appointment, User viewer) { boolean doctorViewer = viewer.getRole() == User.Role.DOCTOR; return Map.of("id", appointment.getId(), "appointmentTime", appointment.getAppointmentTime(), "status", appointment.getStatus(), "priority", appointment.getPatient().getSubscriptionTier(), doctorViewer ? "patientId" : "doctorId", doctorViewer ? appointment.getPatient().getId() : appointment.getDoctor().getId()); }
+}
