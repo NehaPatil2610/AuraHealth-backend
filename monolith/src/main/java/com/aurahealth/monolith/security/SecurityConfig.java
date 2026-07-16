@@ -1,6 +1,5 @@
 package com.aurahealth.monolith.security;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,16 +20,13 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
-    private final String frontendUrl;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider,
                           OAuth2SuccessHandler oAuth2SuccessHandler,
-                          OAuth2FailureHandler oAuth2FailureHandler,
-                          @Value("${aura.frontend-url}") String frontendUrl) {
+                          OAuth2FailureHandler oAuth2FailureHandler) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.oAuth2FailureHandler = oAuth2FailureHandler;
-        this.frontendUrl = frontendUrl;
     }
 
     @Bean
@@ -93,9 +89,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(frontendUrl));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
+        configuration.setAllowedOrigins(List.of("https://aura-health-frontend.vercel.app"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Set-Cookie"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
