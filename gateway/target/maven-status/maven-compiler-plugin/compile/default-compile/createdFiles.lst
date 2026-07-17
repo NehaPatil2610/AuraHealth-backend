@@ -1,0 +1,7 @@
+com\aurahealth\gateway\CustomOAuth2SuccessHandler.class
+com\aurahealth\gateway\ErrorController.class
+com\aurahealth\gateway\GatewayCorsConfig.class
+com\aurahealth\gateway\GatewaySecurityConfig.class
+com\aurahealth\gateway\WebSessionConfig.class
+com\aurahealth\gateway\GatewayApplication.class
+com\aurahealth\gateway\GatewayJwtUtil.class

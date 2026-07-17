@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Jul 08 21:05:49 IST 2026
+@default-central-https\://repo.maven.apache.org/maven2/.lastUpdated=1783524949979
+https\://repo.maven.apache.org/maven2/.error=Could not transfer artifact org.springframework.data\:spring-data-jpa\:jar\:3.3.1 from/to central (https\://repo.maven.apache.org/maven2)\: Tag mismatch\!
