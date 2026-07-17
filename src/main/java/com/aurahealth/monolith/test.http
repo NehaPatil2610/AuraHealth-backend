@@ -1,0 +1,15 @@
+### Register a New Patient
+POST http://localhost:8080/api/patients/register
+Content-Type: application/json
+
+{
+  "firstName": "Aarav",
+  "lastName": "Joshi",
+  "email": "aarav.joshi@example.com",
+  "phoneNumber": "9876543210",
+  "gender": "Male",
+  "medicalHistory": "No prior illnesses"
+}
+
+### Get All Patients
+GET http://localhost:8080/api/patients

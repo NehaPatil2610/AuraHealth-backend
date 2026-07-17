@@ -1,0 +1,29 @@
+### 1. Register a Patient
+POST http://localhost:8080/api/patients/register
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "medicalHistory": "No known allergies."
+}
+
+### 2. Add a Doctor
+POST http://localhost:8080/api/doctors/add
+Content-Type: application/json
+
+{
+  "name": "Dr. Smith",
+  "email": "dr.smith@example.com",
+  "specialization": "Cardiology",
+  "available": true
+}
+
+### 3. Book a Successful Appointment
+POST http://localhost:8080/api/appointments/book?patientId=1&doctorId=1&appointmentTime=2026-07-20T10:00:00&symptoms=Routine checkup
+
+### 4. Test Double-Booking Prevention (Should Fail)
+POST http://localhost:8080/api/appointments/book?patientId=1&doctorId=1&appointmentTime=2026-07-20T10:00:00&symptoms=Duplicate slot check
+
+### 5. Fetch All Appointments
+GET http://localhost:8080/api/appointments
