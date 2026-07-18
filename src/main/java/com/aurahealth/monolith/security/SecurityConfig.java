@@ -85,11 +85,24 @@ public class SecurityConfig {
     /**
      * CORS for the SPA at the frontend origin with credentials enabled, so the
      * AURA_SESSION cookie is sent/accepted on /api/* XHR (credentials: 'include').
+     *
+     * Uses setAllowedOriginPatterns (not setAllowedOrigins) so we can use wildcards
+     * while still setting allowCredentials=true — Spring rejects wildcard+credentials
+     * with the plain setAllowedOrigins API.
+     *
+     * Covered origins:
+     *  - https://aura-health-frontend-xi.vercel.app      (production canonical URL)
+     *  - https://aura-health-frontend-*.vercel.app       (Vercel preview deployments)
+     *  - http://localhost:5174                            (Vite dev server)
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://aura-health-frontend.vercel.app"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "https://aura-health-frontend-xi.vercel.app",
+                "https://aura-health-frontend-*.vercel.app",
+                "http://localhost:5174"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Set-Cookie"));
