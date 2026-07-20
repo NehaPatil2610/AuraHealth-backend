@@ -55,6 +55,7 @@ public class SecurityConfig {
 
                         // Google OAuth2 entrypoint + callback (Spring Security defaults, at ROOT).
                         .requestMatchers("/oauth2/**", "/login/**", "/error").permitAll()
+                        .requestMatchers("/health", "/").permitAll()
 
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
