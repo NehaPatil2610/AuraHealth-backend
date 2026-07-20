@@ -25,7 +25,11 @@ public class GatewaySecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5174"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "https://aura-health-frontend-xi.vercel.app",
+                "https://aura-health-frontend-*.vercel.app",
+                "http://localhost:5174"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
         configuration.setExposedHeaders(List.of("Set-Cookie"));

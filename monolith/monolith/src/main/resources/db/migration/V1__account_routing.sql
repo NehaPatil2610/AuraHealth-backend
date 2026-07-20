@@ -1,0 +1,38 @@
+CREATE TABLE users (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  full_name VARCHAR(160) NOT NULL,
+  email VARCHAR(320) NOT NULL,
+  password_hash VARCHAR(100) NOT NULL,
+  role ENUM('PATIENT', 'DOCTOR') NOT NULL,
+  provider ENUM('LOCAL', 'GOOGLE') NOT NULL DEFAULT 'LOCAL',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_users_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE doctors (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  license_id VARCHAR(80) NOT NULL,
+  specialty VARCHAR(120) NOT NULL,
+  is_approved BOOLEAN NOT NULL DEFAULT FALSE,
+  name VARCHAR(160) NULL,
+  email VARCHAR(320) NULL,
+  available BOOLEAN NOT NULL DEFAULT FALSE,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_doctors_user_id (user_id),
+  UNIQUE KEY uk_doctors_license_id (license_id),
+  CONSTRAINT fk_doctors_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE patients (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  subscription_tier ENUM('FREE','EARLY_ASSISTANCE','PERSONAL_ASSISTANCE','COMPREHENSIVE_PRIORITY') NOT NULL DEFAULT 'FREE',
+  name VARCHAR(160) NULL,
+  email VARCHAR(320) NULL,
+  medical_history TEXT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_patients_user_id (user_id),
+  CONSTRAINT fk_patients_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

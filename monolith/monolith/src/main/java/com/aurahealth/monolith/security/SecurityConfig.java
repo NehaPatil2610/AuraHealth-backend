@@ -43,49 +43,22 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                // IF_REQUIRED (not STATELESS): the OAuth2 authorization-code handshake needs a
-                // short-lived session to hold the authorization request between the redirect to
-                // Google and the /login/oauth2/code/google callback. API requests still create no
-                // session — auth comes from the AURA_SESSION JWT cookie via JwtTokenFilter.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        // Public auth endpoints (register, login, me, logout, mock-bypass)
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        // Google OAuth2 entrypoint + callback (Spring Security defaults, at ROOT).
                         .requestMatchers("/oauth2/**", "/login/**", "/error").permitAll()
-
-                        // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-
-                        // Doctor endpoints
                         .requestMatchers("/api/doctors/add").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/doctors").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
                         .requestMatchers("/api/doctors/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
-
-                        // Patient endpoints
                         .requestMatchers("/api/patients/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
-
-                        // Appointment endpoints (privacy-scoped by service layer)
                         .requestMatchers("/api/appointments/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
-
-                        // Billing endpoints (patient sees own invoices, admin sees all)
                         .requestMatchers("/api/billing/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_PATIENT")
-
-                        // Feedback endpoints
                         .requestMatchers("/api/feedback/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
-
-                        // Notification endpoints
                         .requestMatchers("/api/notifications/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
-
-                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 );
 
-        // Only wire Google OAuth2 login when credentials are actually provided.
-        // Without valid GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, Spring's
-        // auto-config won't create a ClientRegistrationRepository, so calling
-        // .oauth2Login() unconditionally would crash the app at startup.
         if (clientRegistrationRepository != null) {
             http.oauth2Login(oauth2 -> oauth2
                     .successHandler(oAuth2SuccessHandler)
@@ -98,18 +71,5 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * CORS for the SPA at the frontend origin with credentials enabled, so the
-     * AURA_SESSION cookie is sent/accepted on /api/* XHR (credentials: 'include').
-     *
-     * Uses setAllowedOriginPatterns (not setAllowedOrigins) so we can use wildcards
-     * while still setting allowCredentials=true — Spring rejects wildcard+credentials
-     * with the plain setAllowedOrigins API.
-     *
-     * Covered origins:
-     *  - https://aura-health-frontend-xi.vercel.app      (production canonical URL)
-     *  - https://aura-health-frontend-*.vercel.app       (Vercel preview deployments)
-     *  - http://localhost:5174                            (Vite dev server)
-     */
 }
 
