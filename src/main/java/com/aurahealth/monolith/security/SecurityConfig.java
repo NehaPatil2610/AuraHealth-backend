@@ -1,10 +1,12 @@
 package com.aurahealth.monolith.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,6 +22,14 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
+
+    /**
+     * Optional: only present when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+     * are non-empty. When null, oauth2Login() is skipped so the app still
+     * starts and all non-OAuth endpoints work.
+     */
+    @Autowired(required = false)
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider,
                           OAuth2SuccessHandler oAuth2SuccessHandler,
@@ -71,13 +81,20 @@ public class SecurityConfig {
 
                         // Everything else requires authentication
                         .anyRequest().authenticated()
-                )
-                // "Continue with Google": /oauth2/authorization/google -> Google -> /login/oauth2/code/google.
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler)
-                        .failureHandler(oAuth2FailureHandler)
-                )
-                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+                );
+
+        // Only wire Google OAuth2 login when credentials are actually provided.
+        // Without valid GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, Spring's
+        // auto-config won't create a ClientRegistrationRepository, so calling
+        // .oauth2Login() unconditionally would crash the app at startup.
+        if (clientRegistrationRepository != null) {
+            http.oauth2Login(oauth2 -> oauth2
+                    .successHandler(oAuth2SuccessHandler)
+                    .failureHandler(oAuth2FailureHandler)
+            );
+        }
+
+        http.addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -113,3 +130,4 @@ public class SecurityConfig {
         return source;
     }
 }
+
