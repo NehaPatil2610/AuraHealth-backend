@@ -25,9 +25,12 @@ public class SessionCookieFactory {
     private static final int MAX_AGE_SECONDS = 86_400;
 
     private final boolean secure;
+    private final String sameSite;
 
-    public SessionCookieFactory(@Value("${aura.cookie.secure:false}") boolean secure) {
+    public SessionCookieFactory(@Value("${aura.cookie.secure:false}") boolean secure,
+                                @Value("${aura.cookie.same-site:Lax}") String sameSite) {
         this.secure = secure;
+        this.sameSite = sameSite;
     }
 
     /** Attach the session cookie carrying the signed JWT to the response. */
@@ -47,9 +50,10 @@ public class SessionCookieFactory {
         cookie.setSecure(secure);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
-        // Lax lets the cookie ride the top-level OAuth redirect back from Google.
-        // Do NOT use Strict — it would be dropped on that cross-site navigation.
-        cookie.setAttribute("SameSite", "Lax");
+        // Cross-origin (Vercel→Render) needs SameSite=None + Secure=true.
+        // Local same-origin dev uses SameSite=Lax. Driven by aura.cookie.same-site.
+        cookie.setAttribute("SameSite", sameSite);
         return cookie;
     }
 }
+
