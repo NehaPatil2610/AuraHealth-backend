@@ -38,5 +38,23 @@ public class AppointmentController {
     }
 
     private User current(Authentication authentication) { return users.findByEmailIgnoreCase(authentication.getName()).orElseThrow(); }
-    private Map<String, Object> view(Appointment appointment, User viewer) { boolean doctorViewer = viewer.getRole() == User.Role.DOCTOR; return Map.of("id", appointment.getId(), "appointmentTime", appointment.getAppointmentTime(), "status", appointment.getStatus(), "priority", appointment.getPatient().getSubscriptionTier(), doctorViewer ? "patientId" : "doctorId", doctorViewer ? appointment.getPatient().getId() : appointment.getDoctor().getId()); }
+
+    private Map<String, Object> view(Appointment appointment, User viewer) {
+        boolean doctorViewer = viewer.getRole() == User.Role.DOCTOR;
+        java.util.HashMap<String, Object> map = new java.util.HashMap<>();
+        map.put("id", appointment.getId());
+        map.put("appointmentTime", appointment.getAppointmentTime());
+        map.put("status", appointment.getStatus());
+        map.put("priority", appointment.getPatient().getSubscriptionTier());
+        map.put("symptoms", appointment.getSymptoms());
+        if (doctorViewer) {
+            map.put("patientId", appointment.getPatient().getId());
+            map.put("patientName", appointment.getPatient().getName());
+        } else {
+            map.put("doctorId", appointment.getDoctor().getId());
+            map.put("doctorName", appointment.getDoctor().getName());
+            map.put("doctorSpecialty", appointment.getDoctor().getSpecialization());
+        }
+        return map;
+    }
 }

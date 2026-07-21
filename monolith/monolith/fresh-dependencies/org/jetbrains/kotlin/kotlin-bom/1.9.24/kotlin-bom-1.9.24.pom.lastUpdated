@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Jul 08 19:52:16 IST 2026
+https\://uk.maven.org/maven2/.error=Could not transfer artifact org.jetbrains.kotlin\:kotlin-bom\:pom\:1.9.24 from/to maven-central-backup (https\://uk.maven.org/maven2/)\: uk.maven.org
+https\://repo.maven.apache.org/maven2/.lastUpdated=1783520536960
+@default-maven-central-backup-https\://uk.maven.org/maven2/.lastUpdated=1783520536890

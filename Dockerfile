@@ -9,5 +9,4 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 # This matches the jar inside your monolith/target directory
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
 ENTRYPOINT ["java", "-Xmx256m", "-Xms256m", "-jar", "app.jar"]

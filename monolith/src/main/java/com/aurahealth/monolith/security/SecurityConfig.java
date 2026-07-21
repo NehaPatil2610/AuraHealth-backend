@@ -80,6 +80,9 @@ public class SecurityConfig {
                         // Notification endpoints
                         .requestMatchers("/api/notifications/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
 
+                        // Medical record endpoints (privacy-scoped by controller)
+                        .requestMatchers("/api/records/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DOCTOR", "ROLE_PATIENT")
+
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 );
