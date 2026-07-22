@@ -17,7 +17,7 @@ public class BillingService {
     }
 
     // Generate a fresh invoice for a completed appointment
-    public Billing createInvoice(Long appointmentId, double amount) {
+    public Billing createInvoice(Long appointmentId, double amount, String description) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found with ID: " + appointmentId));
 
@@ -26,6 +26,7 @@ public class BillingService {
         billing.setAppointment(appointment);
         billing.setAmount(amount);
         billing.setStatus("UNPAID");
+        billing.setDescription(description);
 
         return billingRepository.save(billing);
     }

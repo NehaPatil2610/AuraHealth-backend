@@ -18,8 +18,8 @@ public class BillingController {
     }
 
     @PostMapping("/invoice")
-    public ResponseEntity<Billing> createInvoice(@RequestParam Long appointmentId, @RequestParam double amount) {
-        Billing billing = billingService.createInvoice(appointmentId, amount);
+    public ResponseEntity<Billing> createInvoice(@RequestParam Long appointmentId, @RequestParam double amount, @RequestParam(required = false) String description) {
+        Billing billing = billingService.createInvoice(appointmentId, amount, description);
         return new ResponseEntity<>(billing, HttpStatus.CREATED);
     }
 

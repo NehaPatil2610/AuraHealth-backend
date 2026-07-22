@@ -50,6 +50,17 @@ public class MedicalRecordController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * GET /api/records/patient/{patientId} — returns a patient's medical records for doctors.
+     */
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<?> getByPatientId(@PathVariable Long patientId, Authentication authentication) {
+        User user = users.findByEmailIgnoreCase(authentication.getName()).orElseThrow();
+        if (user.getRole() != User.Role.DOCTOR) return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body(Map.of("message", "Only doctors can perform this action."));
+        List<MedicalRecord> result = records.findByPatientIdOrderByRecordDateDesc(patientId);
+        return ResponseEntity.ok(result.stream().map(this::toView).toList());
+    }
+
     // ── Helpers ────────────────────────────────────────────────────
 
     private Patient resolvePatient(Authentication authentication) {

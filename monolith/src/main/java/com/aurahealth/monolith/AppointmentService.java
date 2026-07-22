@@ -69,4 +69,29 @@ public class AppointmentService {
         appointment.setStatus(status.toUpperCase());
         return appointmentRepository.save(appointment);
     }
+
+    public Appointment updateTime(Long appointmentId, LocalDateTime newTime) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        boolean isDoubleBooked = appointmentRepository.existsByDoctorIdAndAppointmentTime(appointment.getDoctor().getId(), newTime);
+        if (isDoubleBooked) {
+            throw new IllegalStateException("Doctor already has an appointment scheduled at " + newTime);
+        }
+        appointment.setAppointmentTime(newTime);
+        return appointmentRepository.save(appointment);
+    }
+
+    public void markDayComplete(Long doctorId) {
+        List<Appointment> appointments = appointmentRepository.findByDoctorId(doctorId);
+        LocalDateTime now = LocalDateTime.now();
+        for (Appointment apt : appointments) {
+            String status = apt.getStatus();
+            if ("PENDING".equalsIgnoreCase(status) || "WAITING".equalsIgnoreCase(status) || "SCHEDULED".equalsIgnoreCase(status) || "UPCOMING".equalsIgnoreCase(status)) {
+                if (apt.getAppointmentTime().toLocalDate().equals(now.toLocalDate()) || apt.getAppointmentTime().isBefore(now)) {
+                    apt.setStatus("DONE");
+                    appointmentRepository.save(apt);
+                }
+            }
+        }
+    }
 }

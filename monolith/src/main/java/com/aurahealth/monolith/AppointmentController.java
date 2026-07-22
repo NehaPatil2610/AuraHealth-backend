@@ -37,6 +37,25 @@ public class AppointmentController {
         return ResponseEntity.ok(result.stream().map(item -> view(item, user)).toList());
     }
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestParam String status) {
+        return ResponseEntity.ok(appointments.updateStatus(id, status));
+    }
+
+    @PutMapping("/{id}/time")
+    public ResponseEntity<?> updateTime(@PathVariable Long id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime newTime) {
+        return ResponseEntity.ok(appointments.updateTime(id, newTime));
+    }
+
+    @PutMapping("/today/complete")
+    public ResponseEntity<?> markDayComplete(Authentication authentication) {
+        User user = current(authentication);
+        if (user.getRole() != User.Role.DOCTOR) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Only doctors can perform this action."));
+        com.aurahealth.monolith.entity.Doctor doctor = doctors.findAll().stream().filter(d -> d.getUserId().equals(user.getId())).findFirst().orElseThrow();
+        appointments.markDayComplete(doctor.getId());
+        return ResponseEntity.ok(Map.of("message", "Day marked as complete."));
+    }
+
     private User current(Authentication authentication) { return users.findByEmailIgnoreCase(authentication.getName()).orElseThrow(); }
 
     private Map<String, Object> view(Appointment appointment, User viewer) {
